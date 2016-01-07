@@ -9,6 +9,7 @@
     'openssl_no_asm%': 0,
     'llvm_version%': 0,
     'gas_version%': 0,
+    'use_obsolete_asm%': 'true',
   },
   'targets': [
     {
