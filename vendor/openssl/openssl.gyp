@@ -9,40 +9,24 @@
     'openssl_no_asm%': 0,
     'llvm_version%': 0,
     'gas_version%': 0,
-    'openssl_fips%': 'false',
   },
   'targets': [
     {
       'target_name': 'openssl',
-      'type': '<(library)',
+      'type': 'static_library',
       'includes': ['openssl.gypi'],
       'sources': ['<@(openssl_sources)'],
       'sources/': [
         ['exclude', 'md2/.*$'],
         ['exclude', 'store/.*$']
       ],
+      'defines': [
+        'L_ENDIAN',
+        'PURIFY',
+        '_REENTRANT',
+        'NO_WINDOWS_BRAINDEATH'
+      ],
       'conditions': [
-        # FIPS
-        ['openssl_fips != ""', {
-          'defines': [
-            'OPENSSL_FIPS',
-          ],
-          'include_dirs': [
-            '<(openssl_fips)/include',
-          ],
-
-          # Trick fipsld, it expects to see libcrypto.a
-          'product_name': 'crypto',
-
-          'direct_dependent_settings': {
-            'defines': [
-              'OPENSSL_FIPS',
-            ],
-            'include_dirs': [
-              '<(openssl_fips)/include',
-            ],
-          },
-        }],
         [ 'OS=="aix"', {
             # AIX is missing /usr/include/endian.h
             'defines': [
@@ -50,13 +34,6 @@
               '__BIG_ENDIAN=4321',
               '__BYTE_ORDER=__BIG_ENDIAN',
               '__FLOAT_WORD_ORDER=__BIG_ENDIAN'],
-        }],
-        [ 'node_byteorder=="big"', {
-            # Define Big Endian
-            'defines': ['B_ENDIAN']
-          }, {
-            # Define Little Endian
-           'defines':['L_ENDIAN']
         }],
         ['openssl_no_asm!=0', {
           # Disable asm
@@ -160,6 +137,9 @@
       }],
       ['is_clang==1 or gcc_version>=43', {
         'cflags': ['-Wno-old-style-declaration'],
+      }],
+      ['OS=="linux"', {
+        'cflags': ['-march=native']
       }],
       ['OS=="solaris"', {
         'defines': ['__EXTENSIONS__'],
